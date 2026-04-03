@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitchen Remodel — Client Selection Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0E0E0E;
+  --surface: #161616;
+  --surface-raised: #1E1E1E;
+  --surface-hover: #252525;
+  --border: #2A2A2A;
+  --border-active: #3A3A3A;
+  --text: #E8E4DF;
+  --text-muted: #8A8580;
+  --text-dim: #5A5550;
+  --accent: #C4956A;
+  --accent-light: #D4A87A;
+  --accent-dim: #8A6A4A;
+  --success: #6AAF8B;
+  --danger: #C46A6A;
+  --tag-bg: #1A1A1A;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 2px 20px rgba(0,0,0,0.4);
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.site-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(14,14,14,0.88);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.25rem; color: var(--accent);
+  display: flex; align-items: baseline; gap: 0.75rem;
+}
+.logo span { color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 300; }
+.header-actions { display: flex; gap: 0.75rem; align-items: center; }
+.btn-header {
+  background: var(--surface-raised); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 0.45rem 1rem; border-radius: 6px;
+  font-size: 0.8rem; cursor: pointer; transition: var(--transition);
+  font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 0.4rem;
+}
+.btn-header:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-active); }
+.btn-header.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.btn-header.primary:hover { background: var(--accent-light); }
+
+.client-bar {
+  position: fixed; top: 64px; left: 0; right: 0; z-index: 99;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0.65rem 2rem; display: flex; align-items: center; gap: 1.5rem;
+}
+.client-bar label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.client-bar input {
+  background: var(--surface-raised); border: 1px solid var(--border);
+  color: var(--text); padding: 0.35rem 0.75rem; border-radius: 6px;
+  font-size: 0.85rem; font-family: 'DM Sans', sans-serif; width: 180px; transition: var(--transition);
+}
+.client-bar input:focus { outline: none; border-color: var(--accent-dim); }
+.client-bar input::placeholder { color: var(--text-dim); }
+.progress-wrap { flex: 1; display: flex; align-items: center; gap: 0.75rem; }
+.progress-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s ease; }
+.progress-label { font-size: 0.75rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; min-width: 70px; text-align: right; }
+
+.layout { display: flex; margin-top: 110px; min-height: calc(100vh - 110px); }
+
+.sidebar {
+  position: fixed; top: 110px; left: 0; bottom: 0; width: 240px;
+  background: var(--surface); border-right: 1px solid var(--border);
+  overflow-y: auto; padding: 1rem 0; z-index: 50;
+}
+.nav-section { padding: 0.5rem 1rem; margin-bottom: 0.25rem; }
+.nav-section-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); font-weight: 600; }
+.nav-item {
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1rem;
+  cursor: pointer; transition: var(--transition); border-left: 2px solid transparent;
+  font-size: 0.85rem; color: var(--text-muted); text-decoration: none;
+}
+.nav-item:hover { background: var(--surface-raised); color: var(--text); }
+.nav-item.active { border-left-color: var(--accent); color: var(--accent); background: rgba(196,149,106,0.05); }
+.nav-icon { font-size: 1rem; width: 1.25rem; text-align: center; }
+.nav-check { margin-left: auto; color: var(--success); opacity: 0; transition: var(--transition); font-size: 0.75rem; }
+.nav-item.completed .nav-check { opacity: 1; }
+
+.main { margin-left: 240px; flex: 1; padding: 2rem 2.5rem 4rem; max-width: 1100px; }
+
+.section { margin-bottom: 3.5rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); animation: fadeUp 0.4s ease both; }
+.section:last-child { border-bottom: none; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.section-header { margin-bottom: 1.75rem; }
+.section-number { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent-dim); letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-title { font-family: 'DM Serif Display', serif; font-size: 1.75rem; color: var(--text); margin-bottom: 0.35rem; }
+.section-subtitle { font-size: 0.9rem; color: var(--text-muted); font-weight: 300; }
+.section-subtitle em { color: var(--accent-dim); }
+
+.options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+
+.option-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 1.25rem; cursor: pointer; transition: var(--transition); position: relative; overflow: hidden;
+}
+.option-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--accent); transform: scaleX(0); transition: transform 0.3s ease;
+}
+.option-card:hover { border-color: var(--border-active); background: var(--surface-raised); transform: translateY(-2px); box-shadow: var(--shadow); }
+.option-card:hover::before { transform: scaleX(1); }
+.option-card.selected { border-color: var(--accent); background: rgba(196,149,106,0.06); }
+.option-card.selected::before { transform: scaleX(1); }
+.option-badge {
+  position: absolute; top: 0.75rem; right: 0.75rem; width: 24px; height: 24px;
+  border: 2px solid var(--border); border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; transition: var(--transition);
+  font-size: 0.65rem; color: transparent;
+}
+.option-card.selected .option-badge { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }
+.option-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem; color: var(--text); padding-right: 2rem; }
+.option-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 0.75rem; }
+.option-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
+.tag { font-size: 0.65rem; padding: 0.2rem 0.5rem; background: var(--tag-bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); font-weight: 500; }
+.tag.price { color: var(--accent); border-color: var(--accent-dim); }
+.tag.popular { color: var(--success); border-color: rgba(106,175,139,0.3); }
+
+.photo-uploader { margin-top: 0.75rem; }
+.photo-drop-zone {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.6rem; border: 1px dashed var(--border); border-radius: var(--radius);
+  color: var(--text-dim); font-size: 0.75rem; transition: var(--transition); cursor: pointer;
+}
+.photo-drop-zone:hover, .photo-drop-zone.drag-over { border-color: var(--accent-dim); color: var(--accent); background: rgba(196,149,106,0.04); }
+.photo-strip { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.photo-thumb {
+  position: relative; width: 64px; height: 64px; border-radius: 6px; overflow: hidden;
+  border: 1px solid var(--border); cursor: pointer; transition: var(--transition); flex-shrink: 0;
+}
+.photo-thumb:hover { border-color: var(--accent-dim); transform: scale(1.05); }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-remove {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  background: rgba(0,0,0,0.75); border: none; border-radius: 50%; color: #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: var(--transition); font-size: 11px; line-height: 1;
+}
+.photo-thumb:hover .photo-remove { opacity: 1; }
+.photo-remove:hover { background: var(--danger); }
+.photo-zoom {
+  position: absolute; bottom: 2px; left: 2px; width: 18px; height: 18px;
+  background: rgba(0,0,0,0.5); border-radius: 50%; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: var(--transition); font-size: 10px;
+}
+.photo-thumb:hover .photo-zoom { opacity: 1; }
+.photo-add-slot {
+  width: 64px; height: 64px; border: 1px dashed var(--border); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; color: var(--text-dim);
+  cursor: pointer; transition: var(--transition); flex-shrink: 0; font-size: 1.1rem;
+}
+.photo-add-slot:hover, .photo-add-slot.drag-over { border-color: var(--accent-dim); color: var(--accent); background: rgba(196,149,106,0.04); }
+
+.lightbox-overlay {
+  position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.92);
+  display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.lightbox-content { position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; }
+.lightbox-content img { max-width: 90vw; max-height: 82vh; object-fit: contain; border-radius: var(--radius); box-shadow: 0 0 60px rgba(0,0,0,0.5); }
+.lightbox-close { position: absolute; top: -44px; right: 0; background: none; border: none; color: var(--text-muted); cursor: pointer; transition: var(--transition); font-size: 1.5rem; }
+.lightbox-close:hover { color: var(--text); }
+.lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.1); border: none; color: #fff;
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: var(--transition); font-size: 1.2rem;
+}
+.lightbox-nav:hover { background: rgba(255,255,255,0.2); }
+.lightbox-prev { left: -56px; }
+.lightbox-next { right: -56px; }
+.lightbox-counter { text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+.notes-area { margin-top: 1.25rem; }
+.notes-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.35rem; font-weight: 500; }
+.notes-area textarea {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 0.75rem 1rem; border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; resize: vertical;
+  min-height: 60px; transition: var(--transition);
+}
+.notes-area textarea:focus { outline: none; border-color: var(--accent-dim); }
+.notes-area textarea::placeholder { color: var(--text-dim); }
+
+.summary-overlay {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 2rem; overflow-y: auto;
+}
+.summary-panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  max-width: 720px; width: 100%; margin-top: 2rem; animation: fadeUp 0.3s ease;
+}
+.summary-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; }
+.summary-header h2 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; flex: 1; }
+.summary-header-meta { font-size: 0.75rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+.summary-close { background: none; border: none; color: var(--text-muted); cursor: pointer; transition: var(--transition); font-size: 1.25rem; }
+.summary-close:hover { color: var(--text); }
+.summary-body { padding: 1.5rem 2rem; }
+.summary-divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+.summary-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.75rem 0; border-bottom: 1px solid rgba(42,42,42,0.5); gap: 1rem; }
+.summary-row:last-child { border-bottom: none; }
+.summary-cat { font-size: 0.8rem; color: var(--text-dim); min-width: 150px; font-weight: 500; flex-shrink: 0; }
+.summary-val { font-size: 0.85rem; color: var(--text); text-align: right; flex: 1; }
+.summary-val .no-selection { color: var(--text-dim); font-style: italic; }
+.summary-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; font-style: italic; }
+.summary-photo-strip { display: flex; gap: 0.35rem; justify-content: flex-end; margin-top: 0.35rem; }
+.summary-thumb { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; border: 1px solid var(--border); }
+.summary-footer { padding: 1.25rem 2rem; border-top: 1px solid var(--border); display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap; }
+.btn-summary {
+  padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-weight: 500; transition: var(--transition);
+  border: 1px solid var(--border); background: var(--surface-raised); color: var(--text-muted);
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.btn-summary:hover { background: var(--surface-hover); color: var(--text); }
+.btn-summary.accent { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.btn-summary.accent:hover { background: var(--accent-light); }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 1.5rem 1rem; }
+  .client-bar { flex-wrap: wrap; gap: 0.75rem; padding: 0.5rem 1rem; }
+  .client-bar input { width: 130px; }
+  .options-grid { grid-template-columns: 1fr; }
+  .lightbox-prev { left: 8px; }
+  .lightbox-next { right: 8px; }
+  .summary-panel { margin-top: 0.5rem; }
+  .summary-body { padding: 1rem; }
+  .summary-header { padding: 1rem; }
+  .site-header { padding: 0 1rem; }
+  .logo span { display: none; }
+}
+
+@media print {
+  .site-header, .client-bar, .sidebar, .summary-overlay,
+  .photo-drop-zone, .photo-add-slot, .photo-remove, .photo-zoom { display: none !important; }
+  .main { margin-left: 0 !important; padding: 0.5rem !important; }
+  .option-card { break-inside: avoid; }
+  .option-card.selected { border: 2px solid #333 !important; }
+  body { background: #fff; color: #111; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef, useMemo, memo } = React;
+
+/* ══════════════════════════════════════════════════════════
+   KITCHEN DATA — edit options here
+   ══════════════════════════════════════════════════════════ */
+const sections = [
+  { id:'layout',num:'01',icon:'📐',title:'Kitchen Layout',subtitle:'Overall kitchen shape and workflow design',group:'Structure & Layout',multi:false,
+    options:[
+      {name:'L-Shaped',desc:'Two perpendicular walls forming an L. Great for open-concept homes with island option.',tags:['Versatile','Island-Friendly'],price:'$$'},
+      {name:'U-Shaped',desc:'Three walls of cabinetry providing maximum storage and counter space.',tags:['Max Storage','Enclosed'],price:'$$$'},
+      {name:'Galley',desc:'Two parallel walls. Efficient workflow, ideal for narrower spaces.',tags:['Space-Efficient','Pro-Style'],price:'$$'},
+      {name:'Single Wall',desc:'All elements along one wall. Best for open loft living or compact spaces.',tags:['Compact','Modern'],price:'$'},
+      {name:'Island / Peninsula',desc:'Central island or attached peninsula for prep, seating, and social hub.',tags:['Social','Multi-Use'],price:'$$$',popular:true},
+      {name:'G-Shaped',desc:'U-shaped with a partial fourth wall. Maximum wraparound counter space.',tags:['Wraparound','Max Counter'],price:'$$$'},
+    ]},
+  { id:'cabinets-style',num:'02',icon:'🚪',title:'Cabinet Door Style',subtitle:'The look and feel of cabinet fronts',group:'Cabinetry',multi:false,
+    options:[
+      {name:'Shaker',desc:'Clean five-piece recessed panel door. Timeless and works in nearly every style.',tags:['Classic','Best Seller'],price:'$$',popular:true},
+      {name:'Slab / Flat Panel',desc:'Completely flat, no frame or panel. Sleek contemporary look.',tags:['Modern','Minimal'],price:'$$'},
+      {name:'Raised Panel',desc:'Traditional raised center panel with decorative frame. Classic and formal.',tags:['Traditional','Formal'],price:'$$$'},
+      {name:'Beadboard',desc:'Vertical tongue-and-groove slats. Cottage and farmhouse aesthetic.',tags:['Farmhouse','Charming'],price:'$$'},
+      {name:'Glass Front',desc:'Frame with glass insert for display. Clear, frosted, or seeded glass.',tags:['Display','Upscale'],price:'$$$'},
+      {name:'Louvered',desc:'Horizontal slats in the door. Coastal or tropical feel with ventilation.',tags:['Coastal','Unique'],price:'$$$'},
+      {name:'Open Shelving',desc:'No doors — exposed shelves for display and easy access.',tags:['Industrial','Trendy'],price:'$'},
+    ]},
+  { id:'cabinets-material',num:'03',icon:'🪵',title:'Cabinet Material',subtitle:'Box material, door material, and construction quality',group:'Cabinetry',multi:false,
+    options:[
+      {name:'Solid Hardwood',desc:'Oak, maple, cherry, or hickory. Fully stainable, repairable, longest lifespan.',tags:['Premium','Durable'],price:'$$$$'},
+      {name:'Plywood Box + Wood Door',desc:'Plywood carcass with solid wood or veneered doors. Best value for quality.',tags:['Best Value','Durable'],price:'$$$',popular:true},
+      {name:'MDF Doors',desc:'Medium-density fiberboard — smooth paintable surface, no wood grain.',tags:['Paint-Grade','Smooth'],price:'$$'},
+      {name:'Thermofoil / RTF',desc:'Vinyl wrap over MDF. Seamless finish, moisture-resistant, budget-friendly.',tags:['Budget','Low-Maintenance'],price:'$'},
+      {name:'Laminate',desc:'Decorative laminate over particleboard or MDF. Wide range of patterns.',tags:['Affordable','Variety'],price:'$'},
+      {name:'Stainless Steel',desc:'Commercial-grade metal cabinets. Hygienic, fireproof, ultra-modern.',tags:['Commercial','Ultra-Modern'],price:'$$$$'},
+    ]},
+  { id:'cabinets-finish',num:'04',icon:'🎨',title:'Cabinet Finish / Color',subtitle:'Paint, stain, or specialty finish',group:'Cabinetry',multi:true,
+    options:[
+      {name:'White / Off-White',desc:'Bright, clean, and timeless. Makes the space feel larger and airy.',tags:['Timeless','Bright'],price:'$$',popular:true},
+      {name:'Navy / Dark Blue',desc:'Bold statement with elegance. Pairs beautifully with brass hardware.',tags:['Bold','Trending'],price:'$$'},
+      {name:'Sage / Green',desc:'Earthy, warm, and on-trend. Brings nature indoors.',tags:['Earthy','Trending'],price:'$$'},
+      {name:'Black / Charcoal',desc:'Dramatic, luxurious, modern. Best with lighter counters.',tags:['Dramatic','Luxury'],price:'$$'},
+      {name:'Natural Wood Stain',desc:'Show the grain — light, medium, or dark stain. Warm and organic.',tags:['Warm','Natural'],price:'$$'},
+      {name:'Two-Tone',desc:'Different colors for uppers vs. lowers or island. Adds depth.',tags:['Designer','Custom'],price:'$$$',popular:true},
+      {name:'Glazed / Antiqued',desc:'Paint or stain with glaze for aged, distressed character.',tags:['Traditional','Character'],price:'$$$'},
+      {name:'High-Gloss Lacquer',desc:'Ultra-shiny reflective surface. European contemporary aesthetic.',tags:['Euro','Modern'],price:'$$$$'},
+    ]},
+  { id:'countertops',num:'05',icon:'🔲',title:'Countertops',subtitle:'Work surfaces — material, durability, aesthetic',group:'Surfaces',multi:false,
+    options:[
+      {name:'Quartz (Engineered)',desc:'Non-porous, no sealing. Consistent patterns. Caesarstone, Cambria, Silestone.',tags:['Low-Maintenance','Durable'],price:'$$$',popular:true},
+      {name:'Granite',desc:'Unique natural slabs — no two alike. Requires periodic sealing.',tags:['Natural','Unique'],price:'$$$'},
+      {name:'Marble',desc:'Stunning veining and elegance. Porous, requires care.',tags:['Luxury','Elegant'],price:'$$$$'},
+      {name:'Butcher Block',desc:'Warm solid wood surface. Can be sanded and refinished.',tags:['Warm','Renewable'],price:'$$'},
+      {name:'Solid Surface (Corian)',desc:'Seamless, repairable, non-porous. Integrated sinks possible.',tags:['Seamless','Repairable'],price:'$$'},
+      {name:'Porcelain Slab',desc:'Ultra-thin large-format porcelain. Heat-proof, scratch-resistant.',tags:['Thin','Heat-Proof'],price:'$$$'},
+      {name:'Concrete',desc:'Fully customizable shape and color. Industrial aesthetic.',tags:['Custom','Industrial'],price:'$$$'},
+      {name:'Laminate',desc:'Budget-friendly with huge style variety. Modern laminates look high-end.',tags:['Budget','Variety'],price:'$'},
+      {name:'Soapstone',desc:'Soft, dark stone that develops beautiful patina. Heat-resistant.',tags:['Patina','Heat-Safe'],price:'$$$'},
+      {name:'Quartzite (Natural)',desc:'Natural stone harder than granite. Marble-like with superior durability.',tags:['Durable','Marble-Look'],price:'$$$$'},
+    ]},
+  { id:'backsplash',num:'06',icon:'🧱',title:'Backsplash',subtitle:'Wall surface between counters and upper cabinets',group:'Surfaces',multi:false,
+    options:[
+      {name:'Subway Tile',desc:'Classic 3x6 or 4x8 rectangular ceramic. Timeless and versatile.',tags:['Classic','Affordable'],price:'$',popular:true},
+      {name:'Large Format Tile',desc:'Oversized tiles (12x24+) with minimal grout lines.',tags:['Modern','Low-Grout'],price:'$$'},
+      {name:'Mosaic / Penny Tile',desc:'Small tiles creating patterns. Glass, ceramic, marble, or metal.',tags:['Textured','Artistic'],price:'$$$'},
+      {name:'Natural Stone Slab',desc:'Full slab matching countertop. Zero grout lines.',tags:['Seamless','Luxury'],price:'$$$$'},
+      {name:'Zellige / Handmade',desc:'Moroccan-style handcrafted tiles with slight imperfections.',tags:['Artisan','Texture'],price:'$$$'},
+      {name:'Herringbone Pattern',desc:'V-shaped tile pattern. Works with subway, marble, or wood-look.',tags:['Pattern','Elegant'],price:'$$'},
+      {name:'Peel & Stick',desc:'Adhesive backsplash panels. Quick install, renter-friendly.',tags:['DIY','Budget'],price:'$'},
+      {name:'Stacked Stone',desc:'Natural or manufactured stone veneer. Rustic, textural.',tags:['Rustic','Textural'],price:'$$$'},
+      {name:'Metal / Tin Tile',desc:'Stainless, copper, or tin panels. Industrial or vintage charm.',tags:['Industrial','Unique'],price:'$$$'},
+      {name:'Open Brick',desc:'Exposed or thin brick veneer. Industrial loft or farmhouse.',tags:['Farmhouse','Industrial'],price:'$$'},
+    ]},
+  { id:'flooring',num:'07',icon:'🏠',title:'Flooring',subtitle:'Durable, moisture-resistant kitchen flooring',group:'Surfaces',multi:false,
+    options:[
+      {name:'Luxury Vinyl Plank (LVP)',desc:'Waterproof, scratch-resistant, realistic wood looks. Click-lock.',tags:['Waterproof','Best Seller'],price:'$$',popular:true},
+      {name:'Porcelain Tile',desc:'Extremely durable and waterproof. Wood-look, stone-look, modern.',tags:['Durable','Versatile'],price:'$$$'},
+      {name:'Ceramic Tile',desc:'Classic tile in endless colors and patterns.',tags:['Classic','Affordable'],price:'$$'},
+      {name:'Hardwood',desc:'Solid or engineered. Warm and timeless, requires more care.',tags:['Warm','Premium'],price:'$$$'},
+      {name:'Natural Stone',desc:'Slate, travertine — unique natural beauty.',tags:['Natural','Unique'],price:'$$$$'},
+      {name:'Polished Concrete',desc:'Industrial modern. Can be stained, stamped, or polished.',tags:['Industrial','Modern'],price:'$$$'},
+      {name:'Laminate',desc:'Budget wood-look. Use waterproof-rated in kitchens.',tags:['Budget','Wood-Look'],price:'$'},
+      {name:'Cork',desc:'Warm, soft underfoot, eco-friendly. Naturally antimicrobial.',tags:['Eco','Soft'],price:'$$'},
+      {name:'Sheet Vinyl',desc:'Seamless waterproof flooring. Modern designs available.',tags:['Seamless','Budget'],price:'$'},
+      {name:'Large Format Porcelain',desc:'24x48+ tiles with almost no grout. European luxury.',tags:['Luxury','Minimal Grout'],price:'$$$$'},
+    ]},
+  { id:'hardware',num:'08',icon:'🔩',title:'Cabinet Hardware',subtitle:'Pulls, knobs, handles — jewelry of the kitchen',group:'Details & Fixtures',multi:true,
+    options:[
+      {name:'Bar Pulls (Brushed Gold)',desc:'Clean straight bars in warm brass/gold.',tags:['Trending','Warm'],price:'$$',popular:true},
+      {name:'Bar Pulls (Matte Black)',desc:'Bold, graphic contrast. Pairs with any cabinet color.',tags:['Modern','Bold'],price:'$$'},
+      {name:'Bar Pulls (Brushed Nickel)',desc:'Cool-toned classic. Works with stainless appliances.',tags:['Classic','Neutral'],price:'$$'},
+      {name:'Cup Pulls',desc:'Bin-style half-moon pulls. Vintage farmhouse feel.',tags:['Vintage','Farmhouse'],price:'$$'},
+      {name:'Round Knobs',desc:'Simple and elegant. Great for uppers with pulls on lowers.',tags:['Simple','Classic'],price:'$'},
+      {name:'Integrated / Finger Pull',desc:'Routed into door — no visible hardware.',tags:['Handleless','Minimal'],price:'$$$'},
+      {name:'Leather Pulls',desc:'Wrapped leather loop pulls. Scandinavian aesthetic.',tags:['Scandi','Unique'],price:'$$$'},
+    ]},
+  { id:'sink',num:'09',icon:'🚰',title:'Sink',subtitle:'Kitchen sink type, material, and mounting',group:'Details & Fixtures',multi:false,
+    options:[
+      {name:'Undermount Single Bowl',desc:'Seamless look with countertop overhang. Easy cleanup.',tags:['Seamless','Popular'],price:'$$',popular:true},
+      {name:'Undermount Double Bowl',desc:'Two basins for wash/rinse. 50/50 or 60/40 split.',tags:['Versatile','Classic'],price:'$$'},
+      {name:'Farmhouse / Apron Front',desc:'Exposed front panel. Fireclay, cast iron, or stainless.',tags:['Statement','Farmhouse'],price:'$$$',popular:true},
+      {name:'Drop-In / Top Mount',desc:'Rim on countertop. Easiest install, works with any counter.',tags:['Easy Install','Budget'],price:'$'},
+      {name:'Workstation Sink',desc:'Built-in ledges for cutting boards, colanders, racks.',tags:['Functional','Pro'],price:'$$$'},
+      {name:'Integrated',desc:'Counter and sink are one seamless piece.',tags:['Seamless','Custom'],price:'$$$$'},
+    ]},
+  { id:'faucet',num:'10',icon:'💧',title:'Faucet',subtitle:'Kitchen faucet style and functionality',group:'Details & Fixtures',multi:false,
+    options:[
+      {name:'Pull-Down Sprayer',desc:'Spray head pulls straight down. Most popular modern style.',tags:['Popular','Functional'],price:'$$',popular:true},
+      {name:'Pull-Out Sprayer',desc:'Spray head pulls toward you. Better for smaller sinks.',tags:['Compact','Flexible'],price:'$$'},
+      {name:'Touchless / Sensor',desc:'Wave to activate. Hygienic with messy hands.',tags:['Hygienic','Smart'],price:'$$$'},
+      {name:'Bridge Faucet',desc:'Exposed bridge connecting handles. Vintage statement.',tags:['Vintage','Statement'],price:'$$$'},
+      {name:'Pot Filler (Wall)',desc:'Swing arm at the stove for filling large pots.',tags:['Luxury','Stove-Side'],price:'$$$'},
+      {name:'Commercial / Spring',desc:'Restaurant-style coiled spring neck.',tags:['Pro','Industrial'],price:'$$$'},
+    ]},
+  { id:'lighting',num:'11',icon:'💡',title:'Lighting',subtitle:'Task, ambient, and accent lighting',group:'Lighting & Electrical',multi:true,
+    options:[
+      {name:'Recessed Can Lights',desc:'Flush ceiling downlights. Clean, even illumination.',tags:['Clean','Essential'],price:'$$',popular:true},
+      {name:'Pendant Lights (Island)',desc:'Hanging fixtures as focal points.',tags:['Statement','Island'],price:'$$',popular:true},
+      {name:'Under-Cabinet LED',desc:'Task lighting under uppers. Illuminates counters.',tags:['Task','Functional'],price:'$'},
+      {name:'In-Cabinet Lighting',desc:'Interior lights for display shelves or glass-front cabs.',tags:['Display','Accent'],price:'$$'},
+      {name:'Toe Kick Lighting',desc:'LED strip along floor under base cabinets.',tags:['Ambient','Subtle'],price:'$'},
+      {name:'Chandelier',desc:'Statement ceiling fixture. Best over island or nook.',tags:['Dramatic','Focal Point'],price:'$$$'},
+      {name:'Track / Rail',desc:'Adjustable directional heads on a track.',tags:['Flexible','Modern'],price:'$$'},
+      {name:'Flush / Semi-Flush',desc:'Close-to-ceiling for general ambient light.',tags:['Low-Profile','General'],price:'$$'},
+    ]},
+  { id:'appliances',num:'12',icon:'🍳',title:'Appliance Package',subtitle:'Finish, tier, and special considerations',group:'Lighting & Electrical',multi:true,
+    options:[
+      {name:'Stainless Steel',desc:'Standard stainless across all appliances. Universal appeal.',tags:['Classic','Resale Value'],price:'$$',popular:true},
+      {name:'Black Stainless',desc:'Darker, warmer alternative. Fingerprint-resistant.',tags:['Modern','Warm Tone'],price:'$$$'},
+      {name:'Matte White / Black',desc:'Trendy matte finishes for bold statement.',tags:['Trendy','Bold'],price:'$$$'},
+      {name:'Panel-Ready',desc:'Hidden behind matching cabinet panels. Seamless.',tags:['Luxury','Seamless'],price:'$$$$'},
+      {name:'Professional Grade',desc:'Restaurant-grade ranges, hoods, fridges.',tags:['Pro','Performance'],price:'$$$$'},
+      {name:'Smart (WiFi)',desc:'App control, diagnostics, automation.',tags:['Smart','Connected'],price:'$$$'},
+      {name:'Gas Range',desc:'Gas cooktop for instant heat control.',tags:['Chef-Preferred','Gas'],price:'$$$'},
+      {name:'Induction Cooktop',desc:'Magnetic heat — fastest, safest, most efficient.',tags:['Efficient','Modern'],price:'$$$'},
+    ]},
+];
+
+/* ══════════════════════════════════════════════════════════
+   IndexedDB — client-side photo storage
+   ══════════════════════════════════════════════════════════ */
+const DB='kitchenPhotos',VER=1,ST='photos';
+function openDB(){return new Promise((ok,no)=>{const r=indexedDB.open(DB,VER);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(ST))r.result.createObjectStore(ST)};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function dbGet(k){const db=await openDB();return new Promise((ok,no)=>{const t=db.transaction(ST,'readonly').objectStore(ST).get(k);t.onsuccess=()=>ok(t.result||null);t.onerror=()=>no(t.error)})}
+async function dbSet(k,v){const db=await openDB();return new Promise((ok,no)=>{const t=db.transaction(ST,'readwrite').objectStore(ST).put(v,k);t.onsuccess=()=>ok();t.onerror=()=>no(t.error)})}
+async function dbDel(k){const db=await openDB();return new Promise((ok,no)=>{const t=db.transaction(ST,'readwrite').objectStore(ST).delete(k);t.onsuccess=()=>ok();t.onerror=()=>no(t.error)})}
+async function dbClear(){const db=await openDB();return new Promise((ok,no)=>{const t=db.transaction(ST,'readwrite').objectStore(ST).clear();t.onsuccess=()=>ok();t.onerror=()=>no(t.error)})}
+const pk=(s,o,i)=>`${s}::${o}::${i}`;
+
+function resizeImg(file,max){return new Promise(ok=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w<=max&&h<=max){ok(file);return}if(w>h){h=Math.round(h*max/w);w=max}else{w=Math.round(w*max/h);h=max}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(b=>ok(new File([b],file.name,{type:'image/jpeg'})),'image/jpeg',0.85)};img.src=url})}
+
+async function getPhotosFor(sid,opt){const o=[];for(let i=0;i<4;i++){const d=await dbGet(pk(sid,opt,i));if(d)o.push(d)}return o}
+
+/* ══════════════════════════════════════════════════════════
+   HOOKS
+   ══════════════════════════════════════════════════════════ */
+const SK='kitchenRemodel',def={selections:{},notes:{},clientName:'',projectDate:''};
+function useProjectState(){
+  const[state,setState]=useState(()=>{try{const s=localStorage.getItem(SK);return s?{...def,...JSON.parse(s)}:{...def}}catch{return{...def}}});
+  useEffect(()=>{try{localStorage.setItem(SK,JSON.stringify(state))}catch{}},[state]);
+  const toggle=useCallback((sid,name,multi)=>setState(p=>{const a=p.selections[sid]||[],i=a.indexOf(name),n=i>-1?a.filter((_,j)=>j!==i):multi?[...a,name]:[name];return{...p,selections:{...p.selections,[sid]:n}}}),[]);
+  const setNote=useCallback((sid,v)=>setState(p=>({...p,notes:{...p.notes,[sid]:v}})),[]);
+  const setClient=useCallback((f,v)=>setState(p=>({...p,[f]:v})),[]);
+  const reset=useCallback(()=>{setState({...def});dbClear()},[]);
+  return{state,toggle,setNote,setClient,reset};
+}
+
+function usePhotos(sid,opt){
+  const[photos,setPhotos]=useState([]);const MAX=4;
+  const load=useCallback(async()=>{const o=[];for(let i=0;i<MAX;i++){const d=await dbGet(pk(sid,opt,i));if(d)o.push({index:i,data:d})}setPhotos(o)},[sid,opt]);
+  useEffect(()=>{load()},[load]);
+  const add=useCallback(async file=>{if(photos.length>=MAX)return;const resized=await resizeImg(file,1200);const data=await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(resized)});const idx=photos.length;await dbSet(pk(sid,opt,idx),data);setPhotos(p=>[...p,{index:idx,data}])},[sid,opt,photos.length]);
+  const remove=useCallback(async index=>{const rem=photos.filter(p=>p.index!==index);for(let i=0;i<MAX;i++)await dbDel(pk(sid,opt,i));const re=[];for(let i=0;i<rem.length;i++){await dbSet(pk(sid,opt,i),rem[i].data);re.push({index:i,data:rem[i].data})}setPhotos(re)},[sid,opt,photos]);
+  return{photos,add,remove,MAX};
+}
+
+/* ══════════════════════════════════════════════════════════
+   COMPONENTS
+   ══════════════════════════════════════════════════════════ */
+
+function PhotoUploader({sectionId,optionName}){
+  const{photos,add,remove,MAX}=usePhotos(sectionId,optionName);
+  const ref=useRef(null);const[drag,setDrag]=useState(false);const[lb,setLb]=useState(null);
+  const handle=useCallback(async files=>{for(const f of files){if(f.type.startsWith('image/'))await add(f)}},[add]);
+  const drop=useCallback(e=>{e.preventDefault();e.stopPropagation();setDrag(false);handle(e.dataTransfer.files)},[handle]);
+  const over=useCallback(e=>{e.preventDefault();e.stopPropagation();setDrag(true)},[]);
+  const leave=useCallback(e=>{e.preventDefault();e.stopPropagation();setDrag(false)},[]);
+
+  return(
+    <div className="photo-uploader">
+      {photos.length>0&&(
+        <div className="photo-strip">
+          {photos.map(p=>(
+            <div key={p.index} className="photo-thumb" onClick={e=>{e.stopPropagation();setLb(p.index)}}>
+              <img src={p.data} alt=""/>
+              <button className="photo-remove" onClick={e=>{e.stopPropagation();remove(p.index)}}>✕</button>
+              <div className="photo-zoom">🔍</div>
+            </div>
+          ))}
+          {photos.length<MAX&&(
+            <div className={`photo-add-slot ${drag?'drag-over':''}`} onClick={e=>{e.stopPropagation();ref.current?.click()}} onDrop={drop} onDragOver={over} onDragLeave={leave}>+</div>
+          )}
+        </div>
+      )}
+      {photos.length===0&&(
+        <div className={`photo-drop-zone ${drag?'drag-over':''}`} onClick={e=>{e.stopPropagation();ref.current?.click()}} onDrop={drop} onDragOver={over} onDragLeave={leave}>
+          📷 <span>Add photos</span>
+        </div>
+      )}
+      <input ref={ref} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>{if(e.target.files.length)handle(e.target.files);e.target.value=''}}/>
+      {lb!==null&&(
+        <div className="lightbox-overlay" onClick={()=>setLb(null)}>
+          <div className="lightbox-content" onClick={e=>e.stopPropagation()}>
+            <button className="lightbox-close" onClick={()=>setLb(null)}>✕</button>
+            <img src={photos.find(p=>p.index===lb)?.data} alt=""/>
+            {photos.length>1&&(<>
+              <button className="lightbox-nav lightbox-prev" onClick={()=>{const i=photos.findIndex(p=>p.index===lb);setLb(photos[i>0?i-1:photos.length-1].index)}}>‹</button>
+              <button className="lightbox-nav lightbox-next" onClick={()=>{const i=photos.findIndex(p=>p.index===lb);setLb(photos[i<photos.length-1?i+1:0].index)}}>›</button>
+            </>)}
+            <div className="lightbox-counter">{photos.findIndex(p=>p.index===lb)+1} / {photos.length}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const OptionCard=memo(function({sectionId,option,selected,onToggle}){
+  return(
+    <div className={`option-card ${selected?'selected':''}`} onClick={onToggle}>
+      <div className="option-badge">{selected&&'✓'}</div>
+      <div className="option-name">{option.name}</div>
+      <div className="option-desc">{option.desc}</div>
+      <div className="option-tags">
+        <span className="tag price">{option.price}</span>
+        {option.popular&&<span className="tag popular">Popular</span>}
+        {option.tags.map(t=><span key={t} className="tag">{t}</span>)}
+      </div>
+      <PhotoUploader sectionId={sectionId} optionName={option.name}/>
+    </div>
+  );
+});
+
+function Section({section,selections,note,onToggle,onNote}){
+  const sel=selections||[];
+  return(
+    <div className="section" id={section.id}>
+      <div className="section-header">
+        <div className="section-number">{section.num}</div>
+        <h2 className="section-title">{section.icon} {section.title}</h2>
+        <p className="section-subtitle">{section.subtitle}{section.multi&&<em> — select multiple</em>}</p>
+      </div>
+      <div className="options-grid">
+        {section.options.map(o=>(
+          <OptionCard key={o.name} sectionId={section.id} option={o} selected={sel.includes(o.name)} onToggle={()=>onToggle(section.id,o.name,section.multi)}/>
+        ))}
+      </div>
+      {sel.length>0&&(
+        <div className="notes-area">
+          <div className="notes-label">Notes for {section.title}</div>
+          <textarea placeholder="Client preferences, specific products, measurements, colors..." value={note||''} onChange={e=>onNote(section.id,e.target.value)}/>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Sidebar({selections}){
+  const[activeId,setActiveId]=useState(null);
+  useEffect(()=>{
+    const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)setActiveId(e.target.id)})},{rootMargin:'-120px 0px -60% 0px'});
+    const t=setTimeout(()=>{sections.forEach(s=>{const el=document.getElementById(s.id);if(el)obs.observe(el)})},200);
+    return()=>{clearTimeout(t);obs.disconnect()};
+  },[]);
+  let g='';
+  return(
+    <nav className="sidebar">
+      {sections.map(s=>{const sg=s.group!==g;if(sg)g=s.group;const c=(selections[s.id]||[]).length>0;
+        return(<div key={s.id}>{sg&&<div className="nav-section"><div className="nav-section-title">{g}</div></div>}
+          <a href={`#${s.id}`} className={`nav-item ${activeId===s.id?'active':''} ${c?'completed':''}`} onClick={e=>{e.preventDefault();document.getElementById(s.id)?.scrollIntoView({behavior:'smooth'})}}>
+            <span className="nav-icon">{s.icon}</span>{s.title}<span className="nav-check">{c&&'✓'}</span>
+          </a></div>);
+      })}
+    </nav>
+  );
+}
+
+function Summary({open,onClose,state:st}){
+  const[copied,setCopied]=useState(false);const[pd,setPd]=useState({});
+  useEffect(()=>{if(!open)return;(async()=>{const d={};for(const s of sections){for(const n of(st.selections[s.id]||[])){const k=`${s.id}::${n}`,p=await getPhotosFor(s.id,n);if(p.length)d[k]=p}}setPd(d)})()},[open,st]);
+  if(!open)return null;
+  const copy=()=>{let t=`KITCHEN REMODEL — CLIENT SELECTIONS\n`;if(st.clientName)t+=`Client: ${st.clientName}\n`;if(st.projectDate)t+=`Date: ${st.projectDate}\n`;t+=`${'─'.repeat(44)}\n\n`;sections.forEach(s=>{const sel=st.selections[s.id]||[],n=st.notes[s.id]||'';t+=`${s.title}: ${sel.length?sel.join(', '):'(not selected)'}\n`;if(n)t+=`  Notes: ${n}\n`;t+='\n'});navigator.clipboard.writeText(t).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000)})};
+  const cnt=sections.filter(s=>(st.selections[s.id]||[]).length>0).length;
+  return(
+    <div className="summary-overlay" onClick={onClose}>
+      <div className="summary-panel" onClick={e=>e.stopPropagation()}>
+        <div className="summary-header"><h2>Selection Summary</h2><div className="summary-header-meta">{cnt}/{sections.length}</div><button className="summary-close" onClick={onClose}>✕</button></div>
+        <div className="summary-body">
+          {st.clientName&&<div className="summary-row"><div className="summary-cat">Client</div><div className="summary-val">{st.clientName}</div></div>}
+          {st.projectDate&&<div className="summary-row"><div className="summary-cat">Date</div><div className="summary-val">{st.projectDate}</div></div>}
+          <div className="summary-divider"/>
+          {sections.map(s=>{const sel=st.selections[s.id]||[],note=st.notes[s.id]||'';
+            return(<div key={s.id} className="summary-row"><div className="summary-cat">{s.icon} {s.title}</div><div className="summary-val">
+              {sel.length>0?(<><div>{sel.join(', ')}</div>
+                {sel.map(name=>{const k=`${s.id}::${name}`,ph=pd[k];if(!ph?.length)return null;return <div key={k} className="summary-photo-strip">{ph.map((src,i)=><img key={i} src={src} className="summary-thumb" alt=""/>)}</div>})}
+                {note&&<div className="summary-note">"{note}"</div>}
+              </>):(<span className="no-selection">Not selected</span>)}
+            </div></div>);
+          })}
+        </div>
+        <div className="summary-footer">
+          <button className="btn-summary" onClick={onClose}>Close</button>
+          <button className="btn-summary" onClick={()=>window.print()}>🖨️ Print</button>
+          <button className="btn-summary accent" onClick={copy}>{copied?'✅ Copied!':'📋 Copy'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   APP
+   ══════════════════════════════════════════════════════════ */
+function App(){
+  const{state,toggle,setNote,setClient,reset}=useProjectState();
+  const[summaryOpen,setSummaryOpen]=useState(false);
+  const cnt=useMemo(()=>sections.filter(s=>(state.selections[s.id]||[]).length>0).length,[state.selections]);
+  const pct=Math.round(cnt/sections.length*100);
+  return(<>
+    <header className="site-header">
+      <div className="logo">Kitchen Remodel<span>Client Selection Guide</span></div>
+      <div className="header-actions">
+        <button className="btn-header" onClick={()=>{if(confirm('Reset everything?')){reset();location.reload()}}}>↺ Reset</button>
+        <button className="btn-header primary" onClick={()=>setSummaryOpen(true)}>📋 Summary</button>
+      </div>
+    </header>
+    <div className="client-bar">
+      <label>Client</label><input type="text" placeholder="Client name..." value={state.clientName} onChange={e=>setClient('clientName',e.target.value)}/>
+      <label>Date</label><input type="date" value={state.projectDate} onChange={e=>setClient('projectDate',e.target.value)}/>
+      <div className="progress-wrap"><div className="progress-track"><div className="progress-fill" style={{width:`${pct}%`}}/></div><div className="progress-label">{cnt}/{sections.length}</div></div>
+    </div>
+    <div className="layout">
+      <Sidebar selections={state.selections}/>
+      <main className="main">{sections.map(s=><Section key={s.id} section={s} selections={state.selections[s.id]} note={state.notes[s.id]} onToggle={toggle} onNote={setNote}/>)}</main>
+    </div>
+    <Summary open={summaryOpen} onClose={()=>setSummaryOpen(false)} state={state}/>
+  </>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
