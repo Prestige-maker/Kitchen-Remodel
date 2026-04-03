@@ -280,7 +280,10 @@ async function loadPhotoMap(cfg){
 async function savePhotoMap(cfg,map){
   let sha=null;
   try{const r=await ghFetch('photo-map.json',cfg);if(r.ok){sha=(await r.json()).sha}}catch{}
-  await ghFetch('photo-map.json',cfg,{method:'PUT',body:{message:'Update photo map',content:btoa(JSON.stringify(map,null,2)),...(sha?{sha}:{}),branch:cfg.branch||'main'}});
+  const jsonStr=JSON.stringify(map,null,2);
+  const encoded=btoa(unescape(encodeURIComponent(jsonStr)));
+  const r=await ghFetch('photo-map.json',cfg,{method:'PUT',body:{message:'Update photo map',content:encoded,...(sha?{sha}:{}),branch:cfg.branch||'main'}});
+  if(!r.ok){const err=await r.json().catch(()=>({}));console.error('Save photo map failed:',r.status,err.message)}
 }
 
 async function uploadImg(cfg,sid,opt,dataUrl){
@@ -288,9 +291,17 @@ async function uploadImg(cfg,sid,opt,dataUrl){
   const ext=dataUrl.startsWith('data:image/png')?'png':'jpg';
   const safe=opt.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();
   const path=`images/${sid}/${safe}-${Date.now()}.${ext}`;
-  const r=await ghFetch(path,cfg,{method:'PUT',body:{message:`Add photo: ${sid}/${safe}`,content:b64,branch:cfg.branch||'main'}});
-  if(!r.ok)throw new Error('Upload failed');
-  return`https://${cfg.user}.github.io/${cfg.repo}/${path}`;
+  try{
+    const r=await ghFetch(path,cfg,{method:'PUT',body:{message:`Add photo: ${sid}/${safe}`,content:b64,branch:cfg.branch||'main'}});
+    if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(`${r.status}: ${err.message||r.statusText}`)}
+    return`https://${cfg.user}.github.io/${cfg.repo}/${path}`;
+  }catch(e){
+    if(e.message.includes('401'))throw new Error('Token expired or invalid. Regenerate in GitHub settings.');
+    if(e.message.includes('404'))throw new Error('Repo not found. Check username and repo name in ⚙️ settings.');
+    if(e.message.includes('409'))throw new Error('Conflict — try again in a moment.');
+    if(e.message.includes('422'))throw new Error('Branch "'+cfg.branch+'" not found. Check branch name in ⚙️ settings.');
+    throw e;
+  }
 }
 
 async function deleteImg(cfg,url){
@@ -409,7 +420,14 @@ function Summary({open,onClose,state:st}){const[copied,setCopied]=useState(false
 
 function Settings({open,onClose}){
   const[cfg,setCfg]=useState(getGH()||{user:'',repo:'',branch:'main',token:''});const[status,setStatus]=useState(null);
-  const test=async()=>{setStatus({t:'testing',m:'Testing...'});try{const r=await fetch(`https://api.github.com/repos/${cfg.user}/${cfg.repo}`,{headers:{'Authorization':`token ${cfg.token}`}});if(r.ok)setStatus({t:'ok',m:'Connected! Photos will sync across all devices.'});else setStatus({t:'err',m:'Cannot access repo. Check username, repo name, and token.'})}catch{setStatus({t:'err',m:'Network error.'})}};
+  const test=async()=>{setStatus({t:'testing',m:'Testing...'});try{
+    if(!cfg.user||!cfg.repo||!cfg.token){setStatus({t:'err',m:'Fill in all fields first.'});return}
+    const r=await fetch(`https://api.github.com/repos/${cfg.user}/${cfg.repo}`,{headers:{'Authorization':`token ${cfg.token}`}});
+    if(r.ok){const d=await r.json();setStatus({t:'ok',m:`Connected to "${d.full_name}" (branch: ${cfg.branch||'main'}). Photos will sync.`})}
+    else if(r.status===401)setStatus({t:'err',m:'Token is invalid or expired. Generate a new one.'})
+    else if(r.status===404)setStatus({t:'err',m:`Repo "${cfg.user}/${cfg.repo}" not found. Check spelling.`})
+    else setStatus({t:'err',m:`Error ${r.status}: ${r.statusText}`})
+  }catch{setStatus({t:'err',m:'Network error. Check your internet connection.'})}};
   const save=()=>{setGH(cfg);onClose();location.reload()};
   if(!open)return null;
   return(<div className="settings-overlay" onClick={onClose}><div className="settings-panel" onClick={e=>e.stopPropagation()}>
