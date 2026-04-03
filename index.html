@@ -175,6 +175,14 @@ body {
   opacity: 0; transition: var(--transition); font-size: 10px;
 }
 .photo-thumb:hover .photo-zoom { opacity: 1; }
+.photo-pin {
+  position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+  background: rgba(0,0,0,0.6); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; line-height: 1;
+}
+.repo-photo { border-color: var(--accent-dim); }
+.repo-photo:hover { border-color: var(--accent); }
 .photo-add-slot {
   width: 64px; height: 64px; border: 1px dashed var(--border); border-radius: 6px;
   display: flex; align-items: center; justify-content: center; color: var(--text-dim);
@@ -297,6 +305,90 @@ body {
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useCallback, useRef, useMemo, memo } = React;
+
+/* ══════════════════════════════════════════════════════════
+   PHOTO MAP — ADD YOUR REPO IMAGES HERE
+   ══════════════════════════════════════════════════════════
+   
+   These photos live in your GitHub repo and show on EVERY device.
+   
+   Step 1: Create an "images" folder in your repo
+   Step 2: Drop your photos in (organize however you want)
+   Step 3: Add the paths below, matching "sectionId::Option Name"
+   
+   Folder structure example:
+   ├── index.html
+   └── images/
+       ├── layout/
+       │   ├── l-shaped-1.jpg
+       │   └── island-1.jpg
+       ├── cabinets/
+       │   ├── shaker-1.jpg
+       │   ├── shaker-2.jpg
+       │   └── slab-1.jpg
+       ├── countertops/
+       │   ├── quartz-1.jpg
+       │   └── marble-1.jpg
+       ├── backsplash/
+       ├── flooring/
+       ├── hardware/
+       ├── sink/
+       ├── faucet/
+       ├── lighting/
+       └── appliances/
+
+   Each key is "sectionId::Option Name" (must match exactly).
+   Each value is an array of image paths relative to index.html.
+   You can add up to 4 photos per option.
+   ══════════════════════════════════════════════════════════ */
+
+const PHOTO_MAP = {
+  // LAYOUT — section id: "layout"
+  // "layout::L-Shaped":          ["images/layout/l-shaped-1.jpg"],
+  // "layout::Island / Peninsula": ["images/layout/island-1.jpg", "images/layout/island-2.jpg"],
+
+  // CABINET DOOR STYLE — section id: "cabinets-style"
+  // "cabinets-style::Shaker":          ["images/cabinets/shaker-1.jpg", "images/cabinets/shaker-2.jpg"],
+  // "cabinets-style::Slab / Flat Panel": ["images/cabinets/slab-1.jpg"],
+
+  // CABINET MATERIAL — section id: "cabinets-material"
+  // "cabinets-material::Solid Hardwood": ["images/cabinets/hardwood-1.jpg"],
+
+  // CABINET FINISH — section id: "cabinets-finish"
+  // "cabinets-finish::White / Off-White": ["images/finish/white-1.jpg"],
+  // "cabinets-finish::Two-Tone":          ["images/finish/two-tone-1.jpg"],
+
+  // COUNTERTOPS — section id: "countertops"
+  // "countertops::Quartz (Engineered)": ["images/countertops/quartz-1.jpg"],
+  // "countertops::Marble":              ["images/countertops/marble-1.jpg"],
+
+  // BACKSPLASH — section id: "backsplash"
+  // "backsplash::Subway Tile":     ["images/backsplash/subway-1.jpg"],
+  // "backsplash::Herringbone Pattern": ["images/backsplash/herringbone-1.jpg"],
+
+  // FLOORING — section id: "flooring"
+  // "flooring::Luxury Vinyl Plank (LVP)": ["images/flooring/lvp-1.jpg"],
+
+  // HARDWARE — section id: "hardware"
+  // "hardware::Bar Pulls (Brushed Gold)": ["images/hardware/gold-pulls-1.jpg"],
+
+  // SINK — section id: "sink"
+  // "sink::Farmhouse / Apron Front": ["images/sink/farmhouse-1.jpg"],
+
+  // FAUCET — section id: "faucet"
+  // "faucet::Pull-Down Sprayer": ["images/faucet/pulldown-1.jpg"],
+
+  // LIGHTING — section id: "lighting"
+  // "lighting::Pendant Lights (Island)": ["images/lighting/pendants-1.jpg"],
+
+  // APPLIANCES — section id: "appliances"
+  // "appliances::Stainless Steel": ["images/appliances/stainless-1.jpg"],
+};
+
+// Helper to look up repo photos for an option
+function getRepoPhotos(sectionId, optionName) {
+  return PHOTO_MAP[`${sectionId}::${optionName}`] || [];
+}
 
 /* ══════════════════════════════════════════════════════════
    KITCHEN DATA — edit options here
@@ -476,45 +568,60 @@ function usePhotos(sid,opt){
    ══════════════════════════════════════════════════════════ */
 
 function PhotoUploader({sectionId,optionName}){
-  const{photos,add,remove,MAX}=usePhotos(sectionId,optionName);
+  const{photos:localPhotos,add,remove,MAX}=usePhotos(sectionId,optionName);
+  const repoPhotos=getRepoPhotos(sectionId,optionName);
   const ref=useRef(null);const[drag,setDrag]=useState(false);const[lb,setLb]=useState(null);
   const handle=useCallback(async files=>{for(const f of files){if(f.type.startsWith('image/'))await add(f)}},[add]);
   const drop=useCallback(e=>{e.preventDefault();e.stopPropagation();setDrag(false);handle(e.dataTransfer.files)},[handle]);
   const over=useCallback(e=>{e.preventDefault();e.stopPropagation();setDrag(true)},[]);
   const leave=useCallback(e=>{e.preventDefault();e.stopPropagation();setDrag(false)},[]);
 
+  // Combine: repo photos first (permanent), then local photos (deletable)
+  const allPhotos=useMemo(()=>{
+    const combined=[];
+    repoPhotos.forEach((src,i)=>combined.push({key:'repo-'+i,src,type:'repo'}));
+    localPhotos.forEach(p=>combined.push({key:'local-'+p.index,src:p.data,type:'local',localIndex:p.index}));
+    return combined;
+  },[repoPhotos,localPhotos]);
+
+  const totalPhotos=allPhotos.length;
+  const canAddMore=localPhotos.length<MAX;
+
   return(
     <div className="photo-uploader">
-      {photos.length>0&&(
+      {totalPhotos>0&&(
         <div className="photo-strip">
-          {photos.map(p=>(
-            <div key={p.index} className="photo-thumb" onClick={e=>{e.stopPropagation();setLb(p.index)}}>
-              <img src={p.data} alt=""/>
-              <button className="photo-remove" onClick={e=>{e.stopPropagation();remove(p.index)}}>✕</button>
+          {allPhotos.map((p,i)=>(
+            <div key={p.key} className={`photo-thumb ${p.type==='repo'?'repo-photo':''}`} onClick={e=>{e.stopPropagation();setLb(i)}}>
+              <img src={p.src} alt=""/>
+              {p.type==='local'&&(
+                <button className="photo-remove" onClick={e=>{e.stopPropagation();remove(p.localIndex)}}>✕</button>
+              )}
+              {p.type==='repo'&&<div className="photo-pin" title="From repo — visible on all devices">📌</div>}
               <div className="photo-zoom">🔍</div>
             </div>
           ))}
-          {photos.length<MAX&&(
+          {canAddMore&&(
             <div className={`photo-add-slot ${drag?'drag-over':''}`} onClick={e=>{e.stopPropagation();ref.current?.click()}} onDrop={drop} onDragOver={over} onDragLeave={leave}>+</div>
           )}
         </div>
       )}
-      {photos.length===0&&(
+      {totalPhotos===0&&(
         <div className={`photo-drop-zone ${drag?'drag-over':''}`} onClick={e=>{e.stopPropagation();ref.current?.click()}} onDrop={drop} onDragOver={over} onDragLeave={leave}>
           📷 <span>Add photos</span>
         </div>
       )}
       <input ref={ref} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>{if(e.target.files.length)handle(e.target.files);e.target.value=''}}/>
-      {lb!==null&&ReactDOM.createPortal(
+      {lb!==null&&allPhotos[lb]&&ReactDOM.createPortal(
         <div className="lightbox-overlay" onClick={e=>{e.stopPropagation();setLb(null)}}>
           <div className="lightbox-content" onClick={e=>e.stopPropagation()}>
             <button className="lightbox-close" onClick={e=>{e.stopPropagation();setLb(null)}}>✕</button>
-            <img src={photos.find(p=>p.index===lb)?.data} alt=""/>
-            {photos.length>1&&(<>
-              <button className="lightbox-nav lightbox-prev" onClick={e=>{e.stopPropagation();const i=photos.findIndex(p=>p.index===lb);setLb(photos[i>0?i-1:photos.length-1].index)}}>‹</button>
-              <button className="lightbox-nav lightbox-next" onClick={e=>{e.stopPropagation();const i=photos.findIndex(p=>p.index===lb);setLb(photos[i<photos.length-1?i+1:0].index)}}>›</button>
+            <img src={allPhotos[lb].src} alt=""/>
+            {totalPhotos>1&&(<>
+              <button className="lightbox-nav lightbox-prev" onClick={e=>{e.stopPropagation();setLb(lb>0?lb-1:totalPhotos-1)}}>‹</button>
+              <button className="lightbox-nav lightbox-next" onClick={e=>{e.stopPropagation();setLb(lb<totalPhotos-1?lb+1:0)}}>›</button>
             </>)}
-            <div className="lightbox-counter">{photos.findIndex(p=>p.index===lb)+1} / {photos.length}</div>
+            <div className="lightbox-counter">{lb+1} / {totalPhotos}</div>
           </div>
         </div>,
         document.body
@@ -585,7 +692,10 @@ function Sidebar({selections}){
 
 function Summary({open,onClose,state:st}){
   const[copied,setCopied]=useState(false);const[pd,setPd]=useState({});
-  useEffect(()=>{if(!open)return;(async()=>{const d={};for(const s of sections){for(const n of(st.selections[s.id]||[])){const k=`${s.id}::${n}`,p=await getPhotosFor(s.id,n);if(p.length)d[k]=p}}setPd(d)})()},[open,st]);
+  useEffect(()=>{if(!open)return;(async()=>{const d={};for(const s of sections){for(const n of(st.selections[s.id]||[])){const k=`${s.id}::${n}`;
+    const repo=getRepoPhotos(s.id,n);const local=await getPhotosFor(s.id,n);
+    const all=[...repo,...local];if(all.length)d[k]=all;
+  }}setPd(d)})()},[open,st]);
   if(!open)return null;
   const copy=()=>{let t=`KITCHEN REMODEL — CLIENT SELECTIONS\n`;if(st.clientName)t+=`Client: ${st.clientName}\n`;if(st.projectDate)t+=`Date: ${st.projectDate}\n`;t+=`${'─'.repeat(44)}\n\n`;sections.forEach(s=>{const sel=st.selections[s.id]||[],n=st.notes[s.id]||'';t+=`${s.title}: ${sel.length?sel.join(', '):'(not selected)'}\n`;if(n)t+=`  Notes: ${n}\n`;t+='\n'});navigator.clipboard.writeText(t).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000)})};
   const cnt=sections.filter(s=>(st.selections[s.id]||[]).length>0).length;
