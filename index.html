@@ -284,7 +284,7 @@ function usePhotos(sid,opt){
   const[photos,setPhotos]=useState([]);const MAX=4;
   const load=useCallback(async()=>{const o=[];for(let i=0;i<MAX;i++){const d=await dbGet(pk(sid,opt,i));if(d)o.push({index:i,data:d})}setPhotos(o)},[sid,opt]);
   useEffect(()=>{load()},[load]);
-  const add=useCallback(async file=>{if(photos.length>=MAX)return;const resized=await resizeImg(file,1200);const data=await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(resized)});const idx=photos.length;await dbSet(pk(sid,opt,idx),data);setPhotos(p=>[...p,{index:idx,data}])},[sid,opt,photos.length]);
+  const add=useCallback(async file=>{if(photos.length>=MAX)return;const data=await resizeImg(file,1200);const idx=photos.length;await dbSet(pk(sid,opt,idx),data);setPhotos(p=>[...p,{index:idx,data}])},[sid,opt,photos.length]);
   const remove=useCallback(async index=>{const rem=photos.filter(p=>p.index!==index);for(let i=0;i<MAX;i++)await dbDel(pk(sid,opt,i));const re=[];for(let i=0;i<rem.length;i++){await dbSet(pk(sid,opt,i),rem[i].data);re.push({index:i,data:rem[i].data})}setPhotos(re)},[sid,opt,photos]);
   return{photos,add,remove,MAX};
 }
