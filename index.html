@@ -266,7 +266,28 @@ body {
 
 @media print {
   .site-header, .client-bar, .sidebar, .summary-overlay,
-  .photo-drop-zone, .photo-add-slot, .photo-remove, .photo-zoom { display: none !important; }
+  .photo-drop-zone, .photo-add-slot, .photo-remove, .photo-zoom, .reset-menu { display: none !important; }
+
+.reset-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 150;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 0.75rem;
+  min-width: 260px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: fadeUp 0.15s ease;
+}
+.reset-menu-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); font-weight: 600; margin-bottom: 0.5rem; padding: 0 0.25rem; }
+.reset-menu-btn {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%;
+  padding: 0.6rem 0.5rem; border: none; border-radius: var(--radius);
+  background: transparent; color: var(--text); cursor: pointer;
+  text-align: left; transition: var(--transition); font-family: 'DM Sans', sans-serif;
+}
+.reset-menu-btn:hover { background: var(--surface-raised); }
+.reset-menu-btn span { font-size: 1.1rem; }
+.reset-menu-btn strong { display: block; font-size: 0.85rem; font-weight: 600; }
+.reset-menu-btn small { display: block; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.1rem; }
+.reset-menu-btn.danger:hover { background: rgba(196,106,106,0.1); }
+.reset-menu-btn.danger strong { color: var(--danger); }
   .main { margin-left: 0 !important; padding: 0.5rem !important; }
   .option-card { break-inside: avoid; }
   .option-card.selected { border: 2px solid #333 !important; }
@@ -438,8 +459,9 @@ function useProjectState(){
   const toggle=useCallback((sid,name,multi)=>setState(p=>{const a=p.selections[sid]||[],i=a.indexOf(name),n=i>-1?a.filter((_,j)=>j!==i):multi?[...a,name]:[name];return{...p,selections:{...p.selections,[sid]:n}}}),[]);
   const setNote=useCallback((sid,v)=>setState(p=>({...p,notes:{...p.notes,[sid]:v}})),[]);
   const setClient=useCallback((f,v)=>setState(p=>({...p,[f]:v})),[]);
-  const reset=useCallback(()=>{setState({...def});dbClear()},[]);
-  return{state,toggle,setNote,setClient,reset};
+  const reset=useCallback(()=>{setState({...def})},[]);
+  const resetWithPhotos=useCallback(()=>{setState({...def});dbClear()},[]);
+  return{state,toggle,setNote,setClient,reset,resetWithPhotos};
 }
 
 function usePhotos(sid,opt){
@@ -599,18 +621,33 @@ function Summary({open,onClose,state:st}){
    APP
    ══════════════════════════════════════════════════════════ */
 function App(){
-  const{state,toggle,setNote,setClient,reset}=useProjectState();
+  const{state,toggle,setNote,setClient,reset,resetWithPhotos}=useProjectState();
   const[summaryOpen,setSummaryOpen]=useState(false);
+  const[resetMenu,setResetMenu]=useState(false);
   const cnt=useMemo(()=>sections.filter(s=>(state.selections[s.id]||[]).length>0).length,[state.selections]);
   const pct=Math.round(cnt/sections.length*100);
   return(<>
     <header className="site-header">
       <div className="logo">Kitchen Remodel<span>Client Selection Guide</span></div>
       <div className="header-actions">
-        <button className="btn-header" onClick={()=>{if(confirm('Reset everything?')){reset();location.reload()}}}>↺ Reset</button>
+        <div style={{position:'relative'}}>
+          <button className="btn-header" onClick={()=>setResetMenu(!resetMenu)}>↺ Reset</button>
+          {resetMenu&&(
+            <div className="reset-menu">
+              <div className="reset-menu-title">What do you want to reset?</div>
+              <button className="reset-menu-btn" onClick={()=>{if(confirm('Reset selections and notes? Photos will be kept.')){reset();setResetMenu(false);location.reload()}}}>
+                <span>🔄</span><div><strong>Selections & Notes Only</strong><small>Photos stay attached</small></div>
+              </button>
+              <button className="reset-menu-btn danger" onClick={()=>{if(confirm('Reset EVERYTHING including all photos? This cannot be undone.')){resetWithPhotos();setResetMenu(false);location.reload()}}}>
+                <span>🗑️</span><div><strong>Everything + Photos</strong><small>Full wipe — start fresh</small></div>
+              </button>
+            </div>
+          )}
+        </div>
         <button className="btn-header primary" onClick={()=>setSummaryOpen(true)}>📋 Summary</button>
       </div>
     </header>
+    {resetMenu&&<div style={{position:'fixed',inset:0,zIndex:98}} onClick={()=>setResetMenu(false)}/>}
     <div className="client-bar">
       <label>Client</label><input type="text" placeholder="Client name..." value={state.clientName} onChange={e=>setClient('clientName',e.target.value)}/>
       <label>Date</label><input type="date" value={state.projectDate} onChange={e=>setClient('projectDate',e.target.value)}/>
